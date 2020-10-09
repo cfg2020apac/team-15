@@ -17,8 +17,8 @@ CORS(app)
 # getCourses
 @app.route("/programs" , methods = ["POST"])
 def getAll():
-    program
     database = mongo.db.program
+    database.insert({"programId" : 3})
     programs = mongo.db.program.find({})
     return dumps(programs)
     # return jsonify({'result' : programs })
