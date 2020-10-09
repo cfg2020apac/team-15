@@ -1,76 +1,59 @@
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from os import environ
+from flask_pymongo import PyMongo
+import json
+from bson import json_util
+from bson.raw_bson import RawBSONDocument
+import bsonjs
+from bson.json_util import dumps
+
  
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('account_serviceURL')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root@localhost:3306/account_service'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
- 
-db = SQLAlchemy(app)
+app.config["MONGO_URI"] = "mongodb+srv://admin:@cluster0.cbya2.gcp.mongodb.net/Cluster0?retryWrites=true&w=majority"
+mongo = PyMongo(app)
+
 CORS(app)
 
-class Account(db.Model):
-    tablename = 'account'
+# getCourses
+@app.route("/programs" , methods = ["POST"])
+def getAll():
+    program
+    database = mongo.db.program
+    programs = mongo.db.program.find({})
+    return dumps(programs)
+    # return jsonify({'result' : programs })
+    # return jsonify(json.dumps(programs, default=json_util.default))
 
-    customerID = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), nullable=False)
-    name = db.Column(db.String(64), nullable=False)
-    password = db.Column(db.String(64), nullable=False)
-    customer_email = db.Column(db.String(64), nullable=False)
+# getProgramWithReviews 
+# @app.route("/programs/reviews")
+# def getProgramWithReview():
+#     result = {} 
+#     for data in mongo.db.program.find({}):
+#         result[data['programName']] = mongo.db.dataAnalytics.find({'programId': data['programId']})
+#     return jsonify(result)
 
-    def init(self, customerID, username, name, password, customer_email):
-        self.customerID = customerID
-        self.username = username
-        self.name = name
-        self.password = password
-        self.customer_email = customer_email
+@app.route("/programs/progression")
+def getProgramWithProgression():
+    result = {}
+    for data in mongo.db.program.find({""}):
+        progression = mongo.db.program.find({'programId' : data['programId']})
+        result[data['programName']] = progression
+    return jsonify(result)
 
-    def json(self):
-        return {"customerID": self.customerID, "username": self.username, "name": self.name, "password": self.password, "customer_email": self.customer_email}
+@app.route("/programs/dataAnalytics")
+def getProgramWithDataAnalytics():
+    result = {}
+    for data in mongo.db.program.find({}):
+        dataAnalytics = mongo.db.dataAnalytics.find({'programId': data['programId']})
+        result[data['programName']] = dataAnalytics
+    return jsonify(result)
 
-@app.route("/account")
-def get_all():
-  return jsonify({"Accounts": [account.json() for account in Account.query.all()]})
- 
-@app.route("/account/<string:customerID>")
-def find_by_username(customerID):
-    account = Account.query.filter_by(customerID=customerID).first()
-    if account:
-        return jsonify({"Account": account.json()})
-    return jsonify({"message": "Account not found."}), 404
+# @app.route("/programs/<studentId:studentId>")
+# def getProgramEnroll():
 
-@app.route("/account", methods=['POST'])
-def create_account():
-    info = request.get_json()
-    customerID = info["customerID"]
-    if (Account.query.filter_by(customerID=customerID).first()):
-        return jsonify({"message": "An account with customer ID '{}' already exists.".format(customerID)}), 400
- 
-    data = Account(**info)
 
-    try:
-        db.session.add(data)
-        db.session.commit()
-    except Exception as e:
-        print(e)
-        print(info)
-        return jsonify({"message": "An error occurred creating the account."}), 500
 
-    return jsonify(data.json()), 201
 
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0' , port=5004, debug=True)
     app.run(host='localhost' , port=5004, debug=True)
 
-
-# Testing Data:
-
-# {
-#     "customerID" : "123",
-#     "username" : "joey_xoxo",
-#     "name" : "Joey Tan",
-#     "password" : "huhlumpa",
-#     "customer_email" : "joey_xoxo@gmail.com"
-# }
