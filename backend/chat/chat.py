@@ -17,7 +17,7 @@ def getChat():
     s = chat_info.find({"receivedBy": receive_person})
     t = chat_info.find({"sendBy": send_person})
     if s and t:
-        output = {"sendBy": "sendby", "content":"content_info", "receviedBy": "receive"}
+        output = {"sendBy": s["sendby"], "content":s["content_info"], "receviedBy": s["receive"]}
     return jsonify({"result": output})
 
 @app.route("/send_message", methods=['POST'])
@@ -36,7 +36,7 @@ def sendChat():
         chat_info.insert({'sendBy': send_person, 'content': s['content'], 'receivedBy': receive_person})
         return 'success', 200
     else:
-        chat_info.insert({'sendBy': send_person, 'content': [content], 'receivedBy': receive_person})
+        chat_info.insert({'sendBy': send_person, 'content': s[content], 'receivedBy': receive_person})
         return 'success', 200
     return 'error', 400
 
