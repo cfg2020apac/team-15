@@ -10,7 +10,7 @@ import json
 
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://admin:@cluster0.cbya2.gcp.mongodb.net/Cluster0?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = "mongodb+srv://admin:@cluster0.cbya2.gcp.mongodb.net/Cluster0?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE"
 
 mongo = PyMongo(app)
 CORS(app)
@@ -25,15 +25,16 @@ def validate():
     account_type = username[:2]
     #student = ST, volunteer = VL, admin = AD
     if account_type == "ST":
-        account = mongo.db.account_student
+        account = mongo.db.Account
     elif account_type == "VL":
-        account = mongo.db.account_volunteer
+        account = mongo.db.Account
     else:
-        account = mongo.db.account_admin
+        account = mongo.db.Account
 
     user_account = account.find_one({'username': username})
-    updated_hash_pwd = hash_password(password)
-    status = verify_password(updated_hash_pwd, user_account['password'])
+    status = verify_password(user_account['password'], password)
+    print(user_account)
+    print(password)
     if status:
         return 'success', 200
     return 'error', 400
