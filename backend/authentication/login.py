@@ -10,10 +10,10 @@ import json
 
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
+app.config["MONGO_URI"] = "mongodb+srv://admin:@cluster0.cbya2.gcp.mongodb.net/Cluster0?retryWrites=true&w=majority"
 
 mongo = PyMongo(app)
-
+CORS(app)
 
 @app.route("/validate_password", methods=['POST'])
 def validate():
@@ -21,7 +21,7 @@ def validate():
     #To get UserID
     username = data["username"]
     password = data["password"]
-
+    
     account_type = username[:2]
     #student = ST, volunteer = VL, admin = AD
     if account_type == "ST":
@@ -31,7 +31,7 @@ def validate():
     else:
         account = mongo.db.account_admin
 
-    user_account = account.find_one({'_username': username})
+    user_account = account.find_one({'username': username})
     updated_hash_pwd = hash_password(password)
     status = verify_password(updated_hash_pwd, user_account['password'])
     if status:
