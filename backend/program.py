@@ -6,6 +6,7 @@ from bson import json_util
 from bson.raw_bson import RawBSONDocument
 import bsonjs
 from bson.json_util import dumps
+from bson.json_util import loads
 
  
 app = Flask(__name__)
@@ -15,22 +16,17 @@ mongo = PyMongo(app)
 CORS(app)
 
 # getCourses
-@app.route("/programs" , methods = ["POST"])
+@app.route("/programs")
 def getAll():
-    database = mongo.db.program
-    database.insert({"programId" : 3})
     programs = mongo.db.program.find({})
     return dumps(programs)
     # return jsonify({'result' : programs })
     # return jsonify(json.dumps(programs, default=json_util.default))
 
-# getProgramWithReviews 
-# @app.route("/programs/reviews")
-# def getProgramWithReview():
-#     result = {} 
-#     for data in mongo.db.program.find({}):
-#         result[data['programName']] = mongo.db.dataAnalytics.find({'programId': data['programId']})
-#     return jsonify(result)
+@app.route("/programs/<int:programId>")
+def getProgramWithId(programId):
+    program = mongo.db.program.find_one({"programId" : programId})
+    return dumps(program)
 
 @app.route("/programs/progression")
 def getProgramWithProgression():
@@ -48,13 +44,37 @@ def getProgramWithDataAnalytics():
         result[data['programName']] = dataAnalytics
     return jsonify(result)
 
-# @app.route("/programs/<studentId:studentId>")
-# def getProgramEnroll():
+@app.route("/programs/Enroll/<int:studentId>")
+def getProgramEnroll(studentId):
+    result = {}
+    progressionOfStudent = mongo.db.progression.find({"studentId": studentId})
+    for item in progressionOfStudent:
+        sessionid = item["sessionId"]
+        print(sessionid)
+        session = mongo.db.session.find_one({"sessionId" : sessionid})
+        programId = session["programId"]
+        program = json.loads(getProgramWithId(programId))
+        result[program["programName"]] = { "currentSessionNo" : session["currentSessionNo"], "totalSessionNo" : session["totalSessionNo"] }
+    return jsonify(result)
 
-
-
+@app.route("/hello")
+def mongoPop():
+    count = 0
+    for i in range(10):
+        count+= 1
+        mongo.db.session.insert({"sessionId" : count, "currentSessionNo" : count , "sessionObjective" : count, "attendee" : "james",
+        "courseMaterials" : "English Lesson" , "studentSubmissions" : count, "programId" : count, "dataAnalyticsId" : count,
+         "progressionId" : count , "milestonesId" : count, "totalSessionNo" : count }) 
+    programs = mongo.db.session.find({})
+    return dumps(programs)
 
 if __name__ == '__main__':
     app.run(host='localhost' , port=5004, debug=True)
 
 
+
+
+
+# mongo.db.session.insert({"programId" : count , "programName" : "Assure that every student is fully equipped." , "attendee" : count,
+#         "courseMaterials" : "English Lesson" , "studentSubmissions" : count, "programId" : count, "dataAnalyticsId" : count,
+#          "progressionId" : count , "milestonesId" : count, "totalSessionNo" : count }) 
