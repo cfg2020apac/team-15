@@ -28,23 +28,17 @@ def getProgramWithId(programId):
     program = mongo.db.program.find_one({"programId" : programId})
     return dumps(program)
 
-@app.route("/programs/progression")
-def getProgramWithProgression():
-    result = {}
-    for data in mongo.db.program.find({}):
-        progression = mongo.db.program.find_one({'programId' : data['programId']})
-        result[data['programName']] = progression
-    return jsonify(result)
 
 @app.route("/programs/dataAnalytics")
 def getProgramWithDataAnalytics():
-    result = {}
+    result = {'result':[]}
     for data in mongo.db.program.find({}):
-        dataAnalytics = mongo.db.dataAnalytics.find({'programId': data['programId']})
-        result[data['programName']] = dataAnalytics
-    return jsonify(result)
+        dataAnalytics = mongo.db.DataAnalytics.find({'programId': data['programId']})
+        for item in dataAnalytics:
+            result['result'].append({data['programName']: item['ratings']})
+    return dumps(result)
 
-@app.route("/programs/Enroll/<int:studentId>")
+@app.route("/programs/enroll/<int:studentId>")
 def getProgramEnroll(studentId):
     result = {}
     progressionOfStudent = mongo.db.progression.find({"studentId": studentId})
@@ -57,18 +51,14 @@ def getProgramEnroll(studentId):
         result[program["programName"]] = {"currentSessionNo" : session["currentSessionNo"], "totalSessionNo" : session["totalSessionNo"] }
     return jsonify(result)
 
-@app.route("/hello")
-def mongoPop():
-    count = 20
-    number = 1
-    programclass = ["Finance for future" , "Planning With Purpose", "Personal Spending 101", 'Business Ethics']
-    for i in range(len(programclass)):
-        count+=2 
-        number += 1
-        mongo.db.program.insert({"programId" : number,"programType" : "Secondary", "programName" : programclass[i] , "targetNoOfVolunteers" : count, "actualNoOfVolunteers" : count,
-        "targetNoOfStudents" : count, "actualNoOfStudents" : count ,"attendee" : count}) 
-    programs = mongo.db.program.find({})
-    return dumps(programs)
+@app.route("/programs/add" , methods=["POST"])
+def addProgram():
+    info = request.get_json
+    insert = mongo.db.program.insert({"programId" : info['programId'],"programType" : info['programType'], "programName" : info['programName'] , "targetNoOfVolunteers" : info['targetNoOfVolunteers'], "actualNoOfVolunteers" : info['actualNoOfVolunteers'],
+        "targetNoOfStudents" : info['targetNoOfStudents'], "actualNoOfStudents" : info['actualNoOfStudents'] ,"attendee" : info['attendee']}) 
+    if(insert):
+        return'success' , 200
+    return 'failure' , 400
 
 if __name__ == '__main__':
     app.run(host='localhost' , port=5004, debug=True)
