@@ -22,7 +22,7 @@ def getProfile(userID):
     return dumps(data)
 
 @app.route("/allget_profile/", methods=['GET'])
-def getAllProfile(userID):
+def getAllProfile():
     account = mongo.db.Account
     data = account.find()
     return dumps(data)
