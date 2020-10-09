@@ -31,8 +31,8 @@ def getProgramWithId(programId):
 @app.route("/programs/progression")
 def getProgramWithProgression():
     result = {}
-    for data in mongo.db.program.find({""}):
-        progression = mongo.db.program.find({'programId' : data['programId']})
+    for data in mongo.db.program.find({}):
+        progression = mongo.db.program.find_one({'programId' : data['programId']})
         result[data['programName']] = progression
     return jsonify(result)
 
@@ -54,18 +54,20 @@ def getProgramEnroll(studentId):
         session = mongo.db.session.find_one({"sessionId" : sessionid})
         programId = session["programId"]
         program = json.loads(getProgramWithId(programId))
-        result[program["programName"]] = { "currentSessionNo" : session["currentSessionNo"], "totalSessionNo" : session["totalSessionNo"] }
+        result[program["programName"]] = {"currentSessionNo" : session["currentSessionNo"], "totalSessionNo" : session["totalSessionNo"] }
     return jsonify(result)
 
 @app.route("/hello")
 def mongoPop():
-    count = 0
-    for i in range(10):
-        count+= 1
-        mongo.db.session.insert({"sessionId" : count, "currentSessionNo" : count , "sessionObjective" : count, "attendee" : "james",
-        "courseMaterials" : "English Lesson" , "studentSubmissions" : count, "programId" : count, "dataAnalyticsId" : count,
-         "progressionId" : count , "milestonesId" : count, "totalSessionNo" : count }) 
-    programs = mongo.db.session.find({})
+    count = 20
+    number = 1
+    programclass = ["Finance for future" , "Planning With Purpose", "Personal Spending 101", 'Business Ethics']
+    for i in range(len(programclass)):
+        count+=2 
+        number += 1
+        mongo.db.program.insert({"programId" : number,"programType" : "Secondary", "programName" : programclass[i] , "targetNoOfVolunteers" : count, "actualNoOfVolunteers" : count,
+        "targetNoOfStudents" : count, "actualNoOfStudents" : count ,"attendee" : count}) 
+    programs = mongo.db.program.find({})
     return dumps(programs)
 
 if __name__ == '__main__':
