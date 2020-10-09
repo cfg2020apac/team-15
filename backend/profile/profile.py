@@ -30,7 +30,7 @@ def getAllProfile():
 @app.route("/create_profile", methods=['POST'])
 def createProfile():
     chat_info = mongo.db.Account
-    chat_info.insert({'username': "AD23458", 'email': "AD12345@gmail.com", 'password':"", 'contactNo': 12345678, 'typeOfAccount': "Admin", "firstName": "Test Name", "lastName": "Last Test"})
+    chat_info.insert({'username': "ST23458", 'email': "", 'password':"", 'contactNo': 12345678, 'typeOfAccount': "Admin", "firstName": "Test Name", "lastName": "Last Test"})
     return 'success', 200
 
 
